@@ -1,0 +1,116 @@
+%class SMAnalyzer
+
+%start MainMap::Start
+
+%map MainMap
+%%
+// State		Transition						End State		Action(s)
+Start
+{
+	        Symbol(p : char)			ReturnType			{ incTmp(p); }
+}
+
+ReturnType
+{
+	        Symbol(p : char)			 ReturnType			{ incTmp(p); }
+            WhiteSpace[ctxt.isValidRT()] StartFuncName      { clearTmp();}
+            WhiteSpace                   Error              {}
+
+}
+
+StartFuncName
+{
+            Symbol(p : char)			 FuncName		    { incTmp(p); }
+}
+
+FuncName
+{
+            Symbol(p : char)[ctxt.isValidFN()]	    FuncName	{ incTmp(p); }
+            Digit(p : char)[ctxt.isValidFN()]	    FuncName	{ incTmp(p); }
+            SymbolOpen()[ctxt.isValidFN()]          OpenParam   {clearTmp();}
+            WhiteSpace[ctxt.isValidFN()]            WaitOpen    {clearTmp();}
+            WhiteSpace                              Error       {}
+}
+
+WaitOpen
+{
+            SymbolOpen()                            OpenParam   {clearTmp();}
+}
+
+OpenParam
+{
+        Symbol(p : char)			TypeParam			{ incTmp(p); }
+        WhiteSpace                  nil                 {}
+        SymbolClose                 CloseParam          {}
+}
+
+SecondTypeParam
+{
+    Symbol(p : char)			 TypeParam			{ incTmp(p); }
+}
+
+TypeParam
+{
+            Symbol(p : char)			 TypeParam			{ incTmp(p); }
+            WhiteSpace[ctxt.isValidRT()] StartNameParam     { clearTmp();}
+            WhiteSpace                   Error              {}
+}
+
+StartNameParam
+{
+            Symbol(p : char)			 NameParam		    { incTmp(p); }
+}
+
+NameParam
+{
+            Symbol(p : char)[ctxt.isValidFN()]	    NameParam	{ incTmp(p); }
+            Digit(p : char)[ctxt.isValidFN()]	    NameParam	{ incTmp(p); }
+            Comma[ctxt.isValidFN()]                 SecondTypeParam   {clearTmp();}
+            SymbolClose[ctxt.isValidFN()]           CloseParam  {clearTmp();}
+            WhiteSpace[ctxt.isValidFN()]            WaitNextParam    {clearTmp();}
+            WhiteSpace                              Error       {}
+}
+
+WaitNextParam {
+            Comma                                   SecondTypeParam   {}
+            SymbolClose                             CloseParam  {}
+}
+
+CloseParam
+{
+            SymbolFinish                            Ok          {Acceptable();}
+}
+
+Error
+{
+        WhiteSpace                      nil                 {Unacceptable();}
+            SymbolClose                     Error               {Unacceptable();}
+            SymbolOpen                      Error               {Unacceptable();}
+            SymbolFinish                    Error               {Unacceptable();}
+            Comma                           Error               {Unacceptable();}
+            Digit(p : char)                 Error               {Unacceptable();}
+            Symbol(p : char)                Error               {Unacceptable();}
+            Unknown							Error			    {Unacceptable();}
+	        EOS								Error			    {Unacceptable();}
+}
+
+Ok
+{
+    	        EOS()						nil		    {}
+}
+
+Default
+{
+
+            WhiteSpace                      nil                 {Unacceptable();}
+            SymbolClose                     Error               {Unacceptable();}
+            SymbolOpen                      Error               {Unacceptable();}
+            SymbolFinish                    Error               {Unacceptable();}
+            Comma                           Error               {Unacceptable();}
+            Digit(p : char)                 Error               {Unacceptable();}
+            Symbol(p : char)                Error               {Unacceptable();}
+            Unknown							Error			    {Unacceptable();}
+	        EOS								Error			    {Unacceptable();}
+}
+
+%%
